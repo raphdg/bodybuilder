@@ -13,7 +13,9 @@ test('should nest', (t) => {
       return q
         .notFilter('term', 'user', 'johnny')
         .notFilter('term', 'user', 'cassie')
-    }).filter('term', 'user', 'keming').build()
+    })
+    .andFilter('term', 'user', 'keming')
+    .build()
 
   console.log(JSON.stringify(result, null, 2));
 

@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { buildClause } from './utils'
 import filterBuilder from './filter-builder'
+import boolQuery from './bool-query'
 
 export default function nestedBoolBuilder () {
 
@@ -21,13 +22,10 @@ export default function nestedBoolBuilder () {
         if (nestedResult.hasFilter()) {
           nestedClauses.push(nestedResult.getFilter())
         }
-        console.log(nestedClauses)
       }
     })
 
-    Object.assign(nestedBool, {
-      [boolType]: nestedClauses
-    })
+    Object.assign(nestedBool, boolQuery(boolType, nestedClauses))
 
   }
 

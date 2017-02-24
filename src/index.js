@@ -3,7 +3,7 @@ import queryBuilder from './query-builder'
 import filterBuilder from './filter-builder'
 import aggregationBuilder from './aggregation-builder'
 import nestedBuilder from './nested-builder'
-import { sortMerge } from './utils'
+import { sortMerge, boolMerge } from './utils'
 
 
 /**
@@ -141,12 +141,13 @@ export default function bodybuilder () {
         const filters = this.getFilter()
         const aggregations = this.getAggregations()
         const nested = this.getNestedBool()
+        const newFilters =  boolMerge(filters, nested)
 
         if (version === 'v1') {
-          return _buildV1(body, queries, filters, aggregations, nested)
+          return _buildV1(body, queries, newFilters, aggregations)
         }
 
-        return _build(body, queries, filters, aggregations, nested)
+        return _build(body, queries, newFilters, aggregations)
       }
 
     },
@@ -157,7 +158,7 @@ export default function bodybuilder () {
   )
 }
 
-function _buildV1(body, queries, filters, aggregations, nested) {
+function _buildV1(body, queries, filters, aggregations) {
   let clonedBody = _.cloneDeep(body)
 
   if (!_.isEmpty(filters)) {
@@ -174,13 +175,10 @@ function _buildV1(body, queries, filters, aggregations, nested) {
   if (!_.isEmpty(aggregations)) {
     _.set(clonedBody, 'aggregations', aggregations)
   }
-  if (!_.isEmpty(nested)) {
-    _.set(clonedBody, 'query.filtered.filter', nested)
-  }
   return clonedBody
 }
 
-function _build(body, queries, filters, aggregations, nested) {
+function _build(body, queries, filters, aggregations) {
   let clonedBody = _.cloneDeep(body)
 
   if (!_.isEmpty(filters)) {
@@ -199,9 +197,6 @@ function _build(body, queries, filters, aggregations, nested) {
 
   if (!_.isEmpty(aggregations)) {
     _.set(clonedBody, 'aggs', aggregations)
-  }
-  if (!_.isEmpty(nested)) {
-    _.set(clonedBody, 'query.bool', nested)
   }
 
   return clonedBody
