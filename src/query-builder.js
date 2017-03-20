@@ -4,6 +4,21 @@ import filterBuilder from './filter-builder'
 
 export default function queryBuilder () {
   let query = {}
+  let nestedBool = []
+
+  function makeNestedBool (queryType) {
+    _.each(queryType, function (n) {
+      if (_.isFunction(n)) {
+        const nestedResult = n(Object.assign({}, filterBuilder(), queryBuilder()))
+        if (nestedResult.hasFilter()) {
+          nestedBool.push(nestedResult.getFilter())
+        } else if (nestedResult.hasQuery()) {
+          nestedBool.push(nestedResult.getQuery())
+        }
+      }
+    })
+
+  }
 
   function makeQuery (boolType, queryType, ...args) {
     const nested = {}
@@ -24,11 +39,16 @@ export default function queryBuilder () {
       }
     }
 
-    query = boolMerge(
-      {[queryType]: Object.assign(buildClause(...args), nested)},
-      query,
-      boolType
-    )
+    if (queryType.constructor === Array) {
+      makeNestedBool(queryType)
+      query = boolMerge(nestedBool, query, boolType)
+    } else {
+      query = boolMerge(
+        {[queryType]: Object.assign(buildClause(...args), nested)},
+        query,
+        boolType
+      )
+    }
   }
 
   return {

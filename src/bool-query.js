@@ -20,9 +20,7 @@ const CONDITIONS_MAP = {
  */
 export default function boolQuery(condition, query) {
   let cond = CONDITIONS_MAP[condition]
-  return {
-    bool: {
-      [cond]: [query]
-    }
-  }
+  let result = {bool: {}}
+  result.bool[cond] = query.constructor === Array ? query : [query]
+  return result
 }

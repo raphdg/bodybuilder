@@ -5,6 +5,21 @@ import aggregationBuilder from './aggregation-builder'
 
 export default function filterBuilder () {
   let filter = {}
+  let nestedBool = []
+
+  function makeNestedBool (filterType) {
+    _.each(filterType, function (n) {
+      if (_.isFunction(n)) {
+        const nestedResult = n(Object.assign({}, filterBuilder(), queryBuilder()))
+        if (nestedResult.hasFilter()) {
+          nestedBool.push(nestedResult.getFilter())
+        } else if (nestedResult.hasQuery()) {
+          nestedBool.push(nestedResult.getQuery())
+        }
+      }
+    })
+
+  }
 
   function makeFilter (boolType, filterType, ...args) {
     const nested = {}
@@ -22,18 +37,25 @@ export default function filterBuilder () {
         nested.query = nestedResult.getQuery()
       }
       if (nestedResult.hasFilter()) {
-        nested.filter = nestedResult.getFilter()
+        nested.query = nestedResult.getFilter()
       }
       if (nestedResult.hasAggregations()) {
         nested.aggs = nestedResult.getAggregations()
       }
     }
 
-    filter = boolMerge(
-      {[filterType]: Object.assign(buildClause(...args), nested)},
-      filter,
-      boolType
-    )
+    if (filterType.constructor === Array) {
+      makeNestedBool(filterType)
+      filter = boolMerge(nestedBool, filter, boolType)
+    } else {
+      let obj = Object.assign(buildClause(...args), nested)
+      filter = boolMerge(
+        {[filterType]: obj},
+        filter,
+        boolType
+      )
+    }
+
   }
 
   return {

@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import { buildClause } from './utils'
 import filterBuilder from './filter-builder'
+import nestedBoolBuilder from './nested-builder'
 
 export default function aggregationBuilder () {
   let aggregations = {}

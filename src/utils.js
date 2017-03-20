@@ -112,3 +112,11 @@ export function buildClause (field, value, opts) {
 
   return Object.assign({}, mainClause, opts)
 }
+
+export function mergeNestedBool(...nested) {
+  let merged = {}
+  _.each(nested, (n) => {
+    merged = boolMerge(n, merged)
+  })
+  return merged
+}
